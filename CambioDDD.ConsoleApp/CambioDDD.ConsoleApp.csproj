@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CambioDDD.Application\CambioDDD.Application.csproj" />
+    <ProjectReference Include="..\CambioDDD.Infrastructure\CambioDDD.Infrastructure.csproj" />
     <ProjectReference Include="..\CambioDDD\CambioDDD.Domain.csproj" />
   </ItemGroup>
 
