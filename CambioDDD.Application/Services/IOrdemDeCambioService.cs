@@ -9,7 +9,7 @@ namespace CambioDDD.Application.Services
 {
     public interface IOrdemDeCambioService
     {
-        void Adicionar(decimal valorOperacao, Moeda moedaOrigem, Moeda moedaDestino);
+        void Adicionar(Guid clienteId, decimal valorOperacao, Moeda moedaOrigem, Moeda moedaDestino, string nomeCliente);
         OrdemDeCambio? ObterPorId(Guid idOrdem);
         IEnumerable<OrdemDeCambio> ObterTodas();
     }
