@@ -3,30 +3,45 @@ using CambioDDD.Domain.Client;
 using CambioDDD.Domain.Orders;
 using CambioDDD.Infrastructure.Repositories;
 
-var repo = new OrdemDeCambioRepositoryInMemory();
-var service = new OrdemDeCambioService(repo);
+// 1️⃣ Criar repositórios
+var clienteRepo = new ClienteRepositoryInMemory();
+var ordemRepo = new OrdemDeCambioRepositoryInMemory();
 
+// 2️⃣ Criar services
+var clienteService = new ClienteService(clienteRepo);
+var ordemService = new OrdemDeCambioService(ordemRepo);
+
+// 3️⃣ Criar clientes
+clienteService.AdicionarCliente("Giu", "123456", "giu@email.com");
+clienteService.AdicionarCliente("Joao", "654321", "joao@email.com");
+clienteService.AdicionarCliente("Maria", "789123", "maria@email.com");
+clienteService.AdicionarCliente("Lucas", "321987", "lucas@email.com");
+
+// 4️⃣ Obter lista de clientes
+var clientes = clienteService.ObterTodos().ToList();
+
+// 5️⃣ Criar ordens de câmbio para cada cliente
 var moedaOrigem = new Moeda("USD", "Dólar");
 var moedaDestino = new Moeda("BRL", "Real");
-
-List<Cliente> clientes = new List<Cliente>();
-
-clientes.Add(new Cliente("Giu", "123456", "giu@email.com"));
-clientes.Add(new Cliente("Joao", "123456", "giu@email.com"));
-clientes.Add(new Cliente("Maria", "123456", "giu@email.com"));
-clientes.Add(new Cliente("Lucas", "123456", "giu@email.com"));
-
-foreach (Cliente icliente in clientes)
+foreach (var cliente in clientes)
 {
-    service.Adicionar(icliente.ClientId, 10, moedaOrigem, moedaDestino, icliente.Nome);
+    ordemService.Adicionar(
+        cliente.ClientId,
+        100m,
+        moedaOrigem,
+        moedaDestino,
+        cliente.Nome
+    );
 }
 
-foreach (var order in service.ObterTodas())
+// 6️⃣ Listar todas as ordens
+foreach (var ordem in ordemService.ObterTodas())
 {
-    Console.WriteLine($"Ordem: {order.OrderId} , valor: {order.ValorOperacao} , moeda origem: {order.MoedaOrigem.Nome} , moeda destino: {order.MoedaDestino.Nome} , \n " +
-        $"IDCliente : {order.ClienteId}, Nome do Cliente: {order.NomeCliente}");
+    Console.WriteLine($"Ordem: {ordem.OrderId} , Valor: {ordem.ValorOperacao} , Moeda Origem: {ordem.MoedaOrigem.Nome} , Moeda Destino: {ordem.MoedaDestino.Nome} , " +
+        $"IDCliente: {ordem.ClienteId}, Nome do Cliente: {ordem.NomeCliente}");
 }
 
-var primeiraOrdem = service.ObterTodas().First();
-var busca = service.ObterPorId(primeiraOrdem.OrderId);
+// 7️⃣ Buscar uma ordem por ID
+var primeiraOrdem = ordemService.ObterTodas().First();
+var busca = ordemService.ObterPorId(primeiraOrdem.OrderId);
 Console.WriteLine($"\nBusca por ID {primeiraOrdem.OrderId}: Valor {busca.ValorOperacao} {busca.MoedaOrigem.Codigo}->{busca.MoedaDestino.Codigo}");
