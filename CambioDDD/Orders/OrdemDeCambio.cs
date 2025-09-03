@@ -9,13 +9,21 @@ namespace CambioDDD.Domain.Orders
 {
     public class OrdemDeCambio
     {
+        public enum EnumStatusAtual
+        {
+            Criada = 1,
+            Liquidada = 2,
+            Expirada = 3,
+            Cancelada = 4
+        }
+
         public Guid OrderId { get; private set; }
-        public decimal ValorOperacao { get; set; }
+        public Guid ClienteId { get; private set; }
         public Moeda MoedaOrigem { get; set; }
         public Moeda MoedaDestino { get; set; }
+        public decimal ValorOperacao { get; set; }
         public DateTime DataCriacao { get; set; }
-        public Guid ClienteId { get; private set; }
-
+        public EnumStatusAtual StatusAtual { get; private set; }
         public string NomeCliente { get; private set; }
 
 
@@ -30,6 +38,7 @@ namespace CambioDDD.Domain.Orders
             MoedaOrigem = moedaOrigem;
             MoedaDestino = moedaDestino;
             DataCriacao = DateTime.UtcNow;
+            StatusAtual = EnumStatusAtual.Criada;
         }
         private void ValidarOperacao(decimal valorOperacao, Moeda moedaOrigem, Moeda moedaDestino, Guid clienteId)
         {
