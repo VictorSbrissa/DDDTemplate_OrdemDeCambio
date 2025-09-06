@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
+using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,6 +25,7 @@ namespace CambioDDD.Domain.Orders
         public Moeda MoedaDestino { get; set; }
         public decimal ValorOperacao { get; set; }
         public DateTime DataCriacao { get; set; }
+        public DateTime DataAtualizacaoStatus { get; set; }
         public EnumStatusAtual StatusAtual { get; private set; }
         public string NomeCliente { get; private set; }
 
@@ -38,6 +41,7 @@ namespace CambioDDD.Domain.Orders
             MoedaOrigem = moedaOrigem;
             MoedaDestino = moedaDestino;
             DataCriacao = DateTime.UtcNow;
+            DataAtualizacaoStatus  = DateTime.UtcNow;
             StatusAtual = EnumStatusAtual.Criada;
         }
         private void ValidarOperacao(decimal valorOperacao, Moeda moedaOrigem, Moeda moedaDestino, Guid clienteId)
@@ -54,6 +58,36 @@ namespace CambioDDD.Domain.Orders
             {
                 throw new ArgumentException("Erro Guid cliente");
             }
+        }
+
+        private OrdemDeCambio Liquidar()
+        {
+            if (StatusAtual != EnumStatusAtual.Criada)
+            {
+                throw new ArgumentException("Ordem não pode ser liquidada neste status");
+            }
+            StatusAtual = EnumStatusAtual.Liquidada;
+            DataAtualizacaoStatus = DateTime.UtcNow;
+            return this;
+        }
+
+        private OrdemDeCambio Cancelar() 
+        {
+            if (StatusAtual == EnumStatusAtual.Criada)
+            {
+                StatusAtual = EnumStatusAtual.Cancelada;
+                DataAtualizacaoStatus = DateTime.UtcNow;
+            }
+            return this;
+        }
+        private OrdemDeCambio expirar()
+        {
+            if(StatusAtual == EnumStatusAtual.Criada)
+            {
+                StatusAtual = EnumStatusAtual.Expirada;
+                DataAtualizacaoStatus= DateTime.UtcNow; 
+            }
+            return this;
         }
     }
 }
