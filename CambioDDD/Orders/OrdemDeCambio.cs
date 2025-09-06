@@ -6,18 +6,14 @@ using System.Runtime.ConstrainedExecution;
 using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Threading.Tasks;
+using CambioDDD.Domain.Enums;
+using static CambioDDD.Domain.Enums.EnumStatus;
 
 namespace CambioDDD.Domain.Orders
 {
     public class OrdemDeCambio
     {
-        public enum EnumStatusAtual
-        {
-            Criada = 1,
-            Liquidada = 2,
-            Expirada = 3,
-            Cancelada = 4
-        }
+        private readonly List<StatusHistorico> _historicoStatus = new();
 
         public Guid OrderId { get; private set; }
         public Guid ClienteId { get; private set; }
@@ -26,8 +22,9 @@ namespace CambioDDD.Domain.Orders
         public decimal ValorOperacao { get; set; }
         public DateTime DataCriacao { get; set; }
         public DateTime DataAtualizacaoStatus { get; set; }
-        public EnumStatusAtual StatusAtual { get; private set; }
+        public EnumStatus.EnumStatusOrdem StatusAtual { get; private set; }
         public string NomeCliente { get; private set; }
+        public IReadOnlyCollection<StatusHistorico> Historico => _historicoStatus.AsReadOnly();
 
 
         public OrdemDeCambio(Guid orderId, Guid clienteId, decimal valorOperacao, Moeda moedaOrigem, Moeda moedaDestino, string nomeCliente)
@@ -42,7 +39,12 @@ namespace CambioDDD.Domain.Orders
             MoedaDestino = moedaDestino;
             DataCriacao = DateTime.UtcNow;
             DataAtualizacaoStatus  = DateTime.UtcNow;
-            StatusAtual = EnumStatusAtual.Criada;
+            StatusAtual = EnumStatusOrdem.Criada;
+            StatusHistorico historico = new StatusHistorico();
+            historico.DataMudanca = DateTime.UtcNow;
+            historico.Status = EnumStatusOrdem.Criada;
+            historico.Motivo = "Ordem criada";
+            _historicoStatus.Add(historico);
         }
         private void ValidarOperacao(decimal valorOperacao, Moeda moedaOrigem, Moeda moedaDestino, Guid clienteId)
         {
@@ -60,34 +62,51 @@ namespace CambioDDD.Domain.Orders
             }
         }
 
-        private OrdemDeCambio Liquidar()
+        public OrdemDeCambio Liquidar()
         {
-            if (StatusAtual != EnumStatusAtual.Criada)
+            if (StatusAtual != EnumStatusOrdem.Criada)
             {
                 throw new ArgumentException("Ordem não pode ser liquidada neste status");
             }
-            StatusAtual = EnumStatusAtual.Liquidada;
-            DataAtualizacaoStatus = DateTime.UtcNow;
+            var agora = DateTime.UtcNow;
+            StatusAtual = EnumStatusOrdem.Liquidada;
+            DataAtualizacaoStatus = agora;
+            RegistrarHistorico(EnumStatusOrdem.Liquidada, "Liquidada", agora);
             return this;
         }
 
-        private OrdemDeCambio Cancelar() 
+        public OrdemDeCambio Cancelar() 
         {
-            if (StatusAtual == EnumStatusAtual.Criada)
+            if (StatusAtual == EnumStatusOrdem.Criada)
             {
-                StatusAtual = EnumStatusAtual.Cancelada;
-                DataAtualizacaoStatus = DateTime.UtcNow;
+                var agora = DateTime.UtcNow;
+                StatusAtual = EnumStatusOrdem.Cancelada;
+                DataAtualizacaoStatus = agora;
+                RegistrarHistorico(EnumStatusOrdem.Cancelada, "Cancelada", agora);
+                return this;
             }
             return this;
         }
-        private OrdemDeCambio expirar()
+        public OrdemDeCambio Expirar()
         {
-            if(StatusAtual == EnumStatusAtual.Criada)
+            if(StatusAtual == EnumStatusOrdem.Criada)
             {
-                StatusAtual = EnumStatusAtual.Expirada;
-                DataAtualizacaoStatus= DateTime.UtcNow; 
+                var agora = DateTime.UtcNow;
+                StatusAtual = EnumStatusOrdem.Expirada;
+                DataAtualizacaoStatus = agora;
+                RegistrarHistorico(EnumStatusOrdem.Expirada, "Expirada", agora);
+                return this;
             }
             return this;
+        }
+
+        private void RegistrarHistorico(EnumStatus.EnumStatusOrdem status, String motivo, DateTime agora)
+        {
+            StatusHistorico historico = new StatusHistorico();
+            historico.DataMudanca = agora;
+            historico.Status = status;
+            historico.Motivo = motivo;
+            _historicoStatus.Add(historico);
         }
     }
 }
