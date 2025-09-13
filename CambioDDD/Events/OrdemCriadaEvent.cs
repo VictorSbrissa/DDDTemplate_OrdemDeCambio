@@ -36,7 +36,6 @@ namespace CambioDDD.Domain.Events
     {
         public Guid OrdemId { get;}
         public DateTime AcontecidoEm { get; } = DateTime.UtcNow;
-
         public decimal ValorLiquidado { get; }
 
         public OrdemLiquidadaEvent(Guid ordemId, decimal valorLiquidado)

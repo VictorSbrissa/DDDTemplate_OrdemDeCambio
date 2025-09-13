@@ -67,7 +67,7 @@ namespace CambioDDD.Domain.Orders
             }
         }
 
-        public OrdemDeCambio Liquidar(Guid orderId, decimal valorOperacao)
+        public OrdemDeCambio Liquidar(decimal valorOperacao)
         {
             if (StatusAtual != EnumStatusOrdem.Criada)
             {
@@ -77,11 +77,12 @@ namespace CambioDDD.Domain.Orders
             StatusAtual = EnumStatusOrdem.Liquidada;
             DataAtualizacaoStatus = agora;
             RegistrarHistorico(EnumStatusOrdem.Liquidada, "Liquidada", agora);
-            new OrdemLiquidadaEvent(orderId, valorOperacao);
+            var eventoLiquidacao = new OrdemLiquidadaEvent(this.OrderId, valorOperacao);
+            AddDomainEvent(eventoLiquidacao);
             return this;
         }
 
-        public OrdemDeCambio Cancelar() 
+        public OrdemDeCambio Cancelar(string motivo) 
         {
             if (StatusAtual == EnumStatusOrdem.Criada)
             {
@@ -89,6 +90,8 @@ namespace CambioDDD.Domain.Orders
                 StatusAtual = EnumStatusOrdem.Cancelada;
                 DataAtualizacaoStatus = agora;
                 RegistrarHistorico(EnumStatusOrdem.Cancelada, "Cancelada", agora);
+                var eventoCancelar = new OrdemCanceladaEvent(this.OrderId, motivo);
+                AddDomainEvent(eventoCancelar);
                 return this;
             }
             return this;
@@ -101,6 +104,8 @@ namespace CambioDDD.Domain.Orders
                 StatusAtual = EnumStatusOrdem.Expirada;
                 DataAtualizacaoStatus = agora;
                 RegistrarHistorico(EnumStatusOrdem.Expirada, "Expirada", agora);
+                var eventoExpirar = new OrdemExpiradaEvent(this.OrderId);
+                AddDomainEvent(eventoExpirar);
                 return this;
             }
             return this;
