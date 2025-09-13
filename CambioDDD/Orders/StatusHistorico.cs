@@ -1,4 +1,5 @@
-﻿using CambioDDD.Domain.Enums;
+﻿using CambioDDD.Domain.Client;
+using CambioDDD.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,8 @@ namespace CambioDDD.Domain.Orders
     {
         public EnumStatus.EnumStatusOrdem Status { get;  set; }
         public DateTime DataMudanca { get; set; }
-        public String Motivo { get; set; }
+        public String? Motivo { get; set; }
+        public Cliente? Reponsavel { get; set; }
 
     }
 }

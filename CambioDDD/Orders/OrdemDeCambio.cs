@@ -8,12 +8,14 @@ using System.Text;
 using System.Threading.Tasks;
 using CambioDDD.Domain.Enums;
 using static CambioDDD.Domain.Enums.EnumStatus;
+using CambioDDD.Domain.Events;
 
 namespace CambioDDD.Domain.Orders
 {
     public class OrdemDeCambio
     {
         private readonly List<StatusHistorico> _historicoStatus = new();
+        private readonly List<IDomainEvent> _eventos = new();
 
         public Guid OrderId { get; private set; }
         public Guid ClienteId { get; private set; }
@@ -25,9 +27,10 @@ namespace CambioDDD.Domain.Orders
         public EnumStatus.EnumStatusOrdem StatusAtual { get; private set; }
         public string NomeCliente { get; private set; }
         public IReadOnlyCollection<StatusHistorico> Historico => _historicoStatus.AsReadOnly();
+        public IReadOnlyCollection<IDomainEvent> Eventos => _eventos.AsReadOnly();
 
-
-        public OrdemDeCambio(Guid orderId, Guid clienteId, decimal valorOperacao, Moeda moedaOrigem, Moeda moedaDestino, string nomeCliente)
+        public OrdemDeCambio(Guid orderId, Guid clienteId, decimal valorOperacao, Moeda moedaOrigem, 
+            Moeda moedaDestino, string nomeCliente)
         {
             ValidarOperacao(valorOperacao, moedaOrigem, moedaDestino, clienteId);
 
@@ -45,6 +48,8 @@ namespace CambioDDD.Domain.Orders
             historico.Status = EnumStatusOrdem.Criada;
             historico.Motivo = "Ordem criada";
             _historicoStatus.Add(historico);
+            var eventoCriacao = new OrdemCriadaEvent(orderId, clienteId, valorOperacao, historico.Status, nomeCliente, moedaOrigem, moedaDestino);
+            AddDomainEvent(eventoCriacao);
         }
         private void ValidarOperacao(decimal valorOperacao, Moeda moedaOrigem, Moeda moedaDestino, Guid clienteId)
         {
@@ -62,7 +67,7 @@ namespace CambioDDD.Domain.Orders
             }
         }
 
-        public OrdemDeCambio Liquidar()
+        public OrdemDeCambio Liquidar(Guid orderId, decimal valorOperacao)
         {
             if (StatusAtual != EnumStatusOrdem.Criada)
             {
@@ -72,6 +77,7 @@ namespace CambioDDD.Domain.Orders
             StatusAtual = EnumStatusOrdem.Liquidada;
             DataAtualizacaoStatus = agora;
             RegistrarHistorico(EnumStatusOrdem.Liquidada, "Liquidada", agora);
+            new OrdemLiquidadaEvent(orderId, valorOperacao);
             return this;
         }
 
@@ -107,6 +113,10 @@ namespace CambioDDD.Domain.Orders
             historico.Status = status;
             historico.Motivo = motivo;
             _historicoStatus.Add(historico);
+        }
+        private void AddDomainEvent(IDomainEvent domainEvent)
+        {
+            _eventos.Add(domainEvent);
         }
     }
 }
