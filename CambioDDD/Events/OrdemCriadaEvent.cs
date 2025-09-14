@@ -20,8 +20,15 @@ namespace CambioDDD.Domain.Events
         public Moeda Origem { get;}
         public Moeda Destino { get;}
 
-        public OrdemCriadaEvent(Guid ordemId, Guid clienteId, decimal valorOperacao, EnumStatus.EnumStatusOrdem status, string nomeCliente, 
-            Moeda origem, Moeda destino)
+        public OrdemCriadaEvent(
+            Guid ordemId, 
+            Guid clienteId,
+            decimal valorOperacao, 
+            EnumStatus.EnumStatusOrdem status, 
+            string nomeCliente, 
+            Moeda origem, 
+            Moeda destino
+            )
         {
             OrdemId = ordemId;
             ClienteId = clienteId;
